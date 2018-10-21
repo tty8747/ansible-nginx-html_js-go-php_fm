@@ -1,0 +1,3 @@
+[web]
+nod ansible_ssh_host=185.250.205.196 ansible_ssh_user=goto
+ubu ansible_ssh_host=127.0.0.1

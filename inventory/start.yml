@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: no
+# remote_user: goto
+# become: yes
+# become_user: root
+# become_method: sudo
+  tasks:
+    - name: Installing python & apt update
+      raw: apt-get update && apt-get install -y python2.7-minimal
