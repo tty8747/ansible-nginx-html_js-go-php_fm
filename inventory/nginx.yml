@@ -1,5 +1,0 @@
----
-- hosts: web
-  tasks:
-     - name: Installing nginx
-       apt: name=nginx state=present
