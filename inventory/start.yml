@@ -1,10 +1,16 @@
 ---
 - hosts: all
   gather_facts: no
-# remote_user: goto
-# become: yes
-# become_user: root
-# become_method: sudo
   tasks:
     - name: Installing python & apt update
       raw: apt-get update && apt-get install -y python2.7-minimal
+    - name: Adding user
+      user:
+        name: goto
+        groups: sudo
+        shell: /bin/bash
+    - name: Add ssh keys to remote host
+      authorized_key:
+        user: goto
+        state: present
+        key: "{{ lookup('file', '/home/goto/.ssh/id_rsa.pub') }}"
