@@ -37,7 +37,7 @@
         state=directory
     - name: Push config nginx
       template: 
-        src=files/template.j2
+        src=templates/template.j2
         dest=/etc/nginx/sites-available/{{ site }} 
         owner=goto
         group=www-data
