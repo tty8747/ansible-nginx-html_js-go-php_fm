@@ -6,38 +6,60 @@
   become_user: root
   become_method: sudo
   vars:
-     site: tty8747.devops.srwx.net
+    #site: tty8747.devops.srwx.net
+     site: goapp.aaaj.ru
   tasks:
-   - name: Installing nginx
-     apt: # update_cache=yes
+    - name: Upgrade 
+      apt: upgrade=dist update_cache=yes
+    - name: Installing nginx
+      apt:
           allow_unauthenticated=yes
           name=nginx
           state=present
-   - name: Restart nginx
-     systemd:
-       name: nginx
-       daemon_reload: yes
-       state: started
-   - name: Push config nginx
-     copy:
-       src: files/tty8747.devops.srwx.net
-       dest: /etc/nginx/sites-available/tty8747.devops.srwx.net
-       owner: goto
-       group: www-data
-   - name: rm default and create symlink
-     copy:
-       src: files/tty8747.devops.srwx.net
-       dest: /etc/nginx/sites-available/tty8747.devops.srwx.net
-       # owner: goto
-       # group: www-data
-   - name: rm default and create symlink
-   - file:
-       path: /etc/nginx/sites-enabled/default
-       state: absent
-       action: file src=/etc/nginx/sites-available/$site dest=/etc/nginx/sites-enabled/$site state=link
+      notify: start nginx
+    - name: сreate directory /opt/acme
+      file:
+        path=/opt/acme
+        state=directory
+    - name: сreate directory /srv/www
+      file:
+        path=/srv/www
+        state=directory
+    - name: сreate directory /srv/phpapp
+      file:
+        path=/srv/phpapp
+        state=directory
+    - name: сreate directory /srv/goapi
+      file:
+        path=/srv/goapi
+        state=directory
+    - name: Push config nginx
+      template: 
+        src=files/template.j2
+        dest=/etc/nginx/sites-available/{{ site }} 
+        owner=goto
+        group=www-data
+        mode=0644
+      notify: reload nginx
+    - name: rm default
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: reload nginx
+    - name: create symlink
+      file: src=/etc/nginx/sites-available/{{ site }} dest=/etc/nginx/sites-enabled/{{ site }} state=link
+      notify: reload nginx
+    - name: Installi letsencrypt
+      apt: 
+        allow_unauthenticated=yes
+        name=letsencrypt
+        state=latest
+    - name: Create letsencrypt certificate
 
   handlers:
-   - name: restart nginx
-     service: name=nginx state=restarted
-   - name: reload nginx
-     service: name=nginx state=reloaded
+    - name: restart nginx
+      service: name=nginx state=restarted
+    - name: reload nginx
+      service: name=nginx state=reloaded
+    - name: start nginx
+      service: name=nginx state=started
