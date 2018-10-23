@@ -8,6 +8,8 @@
   vars:
     #site: tty8747.devops.srwx.net
      site: goapp.aaaj.ru
+     letsencrypts_email: tty8747@gmail.com
+
   tasks:
     - name: Upgrade 
       apt: upgrade=dist update_cache=yes
@@ -55,6 +57,28 @@
         name=letsencrypt
         state=latest
     - name: Create letsencrypt certificate
+      shell: letsencrypt certonly -n --webroot -w /opt/acme/ -d {{ site }} -m {{ letsencrypts_email }} --agree-tos
+    - name: Gen dhparam
+      shell: openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
+      notify: reload nginx
+    - name: change /etc/nginx/sites-available/{{ site }}.conf ssl_certificate
+      lineinfile: dest=/etc/nginx/sites-available/{{ site }}
+                  regexp='^ssl_certificate'
+                  insertbefore=BOF
+                  line='        ssl_certificate /etc/letsencrypt/live/goapp.aaaj.ru/fullchain.pem;'
+      notify: reload nginx
+    - name: change /etc/nginx/sites-available/{{ site }}.conf ssl_certificate_key
+      lineinfile: dest=/etc/nginx/sites-available/{{ site }}
+                  regexp='^ssl_certificate_key'
+                  insertbefore=BOF
+                  line='        ssl_certificate_key /etc/letsencrypt/live/goapp.aaaj.ru/privkey.pem;'
+      notify: reload nginx
+    - name: change /etc/nginx/sites-available/{{ site }}.conf ssl_dhparam
+      lineinfile: dest=/etc/nginx/sites-available/{{ site }}
+                  regexp='^ssl_dhparam'
+                  insertbefore=BOF
+                  line='        ssl_dhparam /etc/ssl/certs/dhparam.pem;'
+      notify: reload nginx
 
   handlers:
     - name: restart nginx
