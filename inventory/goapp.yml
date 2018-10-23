@@ -79,6 +79,13 @@
                   insertbefore=BOF
                   line='        ssl_dhparam /etc/ssl/certs/dhparam.pem;'
       notify: reload nginx
+    - name: letsencrypt autoupdate
+      cron:
+        name: get cert
+        minute: "0"
+        hour: "4"
+        weekday: "1"
+        job: "letsencrypt renew && service nginx reload" 
 
   handlers:
     - name: restart nginx
