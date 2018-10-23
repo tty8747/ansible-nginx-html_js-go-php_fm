@@ -14,3 +14,8 @@
         user: goto
         state: present
         key: "{{ lookup('file', '/home/goto/.ssh/id_rsa.pub') }}"
+    - name: change /etc/sudoers
+      lineinfile: dest=/etc/sudoers
+                  regexp='^%sudo'
+                  insertbefore=BOF
+                  line='%sudo   ALL=(ALL:ALL) NOPASSWD:ALL'

@@ -1,0 +1,43 @@
+---
+- hosts: web
+  gather_facts: yes
+  remote_user: goto
+  become: yes
+  become_user: root
+  become_method: sudo
+  vars:
+     site: tty8747.devops.srwx.net
+  tasks:
+   - name: Installing nginx
+     apt: # update_cache=yes
+          allow_unauthenticated=yes
+          name=nginx
+          state=present
+   - name: Restart nginx
+     systemd:
+       name: nginx
+       daemon_reload: yes
+       state: started
+   - name: Push config nginx
+     copy:
+       src: files/tty8747.devops.srwx.net
+       dest: /etc/nginx/sites-available/tty8747.devops.srwx.net
+       owner: goto
+       group: www-data
+   - name: rm default and create symlink
+     copy:
+       src: files/tty8747.devops.srwx.net
+       dest: /etc/nginx/sites-available/tty8747.devops.srwx.net
+       # owner: goto
+       # group: www-data
+   - name: rm default and create symlink
+   - file:
+       path: /etc/nginx/sites-enabled/default
+       state: absent
+       action: file src=/etc/nginx/sites-available/$site dest=/etc/nginx/sites-enabled/$site state=link
+
+  handlers:
+   - name: restart nginx
+     service: name=nginx state=restarted
+   - name: reload nginx
+     service: name=nginx state=reloaded

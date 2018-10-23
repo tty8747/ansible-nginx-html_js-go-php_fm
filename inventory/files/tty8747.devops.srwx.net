@@ -1,0 +1,37 @@
+server {
+        listen 80;
+
+        server_name tty8747.devops.srwx.net;
+
+        location / {
+                return 301 https://$server_name$request_uri;
+        }
+
+        location /.well-known/ {
+                root /opt/acme;
+        }
+}
+
+server {
+
+        listen 443 ssl;
+
+        server_name tty8747.devops.srwx.net;
+
+        ssl_certificate /etc/letsencrypt/live/tty8747.devops.srwx.net/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/tty8747.devops.srwx.net/privkey.pem;
+        ssl_dhparam /etc/ssl/certs/dhparam.pem;
+
+        location / {
+                root /srv/www/;
+        }
+        location /api/sum/ {
+                rewrite ^/api/(.*)$ /$1 break;
+                proxy_pass http://localhost:8080;
+        }
+        location /api/diff/ {
+                include fastcgi_params;
+                fastcgi_param SCRIPT_FILENAME /srv/phpapp/diff.php;
+                fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+        }
+}
