@@ -1,9 +1,21 @@
 ---
 - hosts: all
   gather_facts: no
+  vars:
+   #site: tty8747.devops.srwx.net
+    site: goapp.aaaj.ru
+
   tasks:
+
+    - name: Write the new ec2 instance host key to known hosts
+      connection: local
+      shell: "ssh-keyscan -H {{ site  }} >> ~/.ssh/known_hosts"
+
     - name: Installing python & apt update
-      raw: apt-get update && apt-get install -y python2.7-minimal
+      raw: apt-get install -y python2.7-minimal
+
+    - name: default python2.7
+      raw: update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
 
     - name: Adding user
       user:
