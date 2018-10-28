@@ -141,6 +141,12 @@
         dest: /srv/phpapp
         clone: yes
 
+    - name: Installing php-fpm
+      apt:
+          name=php-fpm
+          state=present
+
+
   handlers:
 
     - name: restart nginx
