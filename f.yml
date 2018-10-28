@@ -1,0 +1,23 @@
+---
+- hosts: all
+  gather_facts: no
+  vars:
+    a: "b"
+    b: "'This is b' 'csdfdsfdsfsdq112'"
+    site:
+      - tty8747.devops.srwx.net
+      - goapp.aaaj.ru
+      - go.aaaj.ru
+
+  tasks:
+  - debug: msg="{{ item }}, {{ item.1 }}"
+#   with_items:
+#     - "{{ b }}" , "def"]
+    with_items:
+      - "{{ site }}"
+  - name: TEST list
+    debug: msg="{{ site }}"
+    vars:
+      packages:
+      - foo
+      - foo-tools

@@ -1,21 +1,25 @@
 ---
 - hosts: all
   gather_facts: no
-  vars:
-   #site: tty8747.devops.srwx.net
-    site: goapp.aaaj.ru
+  vars: 
+
+    site: 
+      - tty8747.devops.srwx.net
+#     - goapp.aaaj.ru
+#     - go.aaaj.ru
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
 
   tasks:
 
-    - name: Write the new ec2 instance host key to known hosts
-      connection: local
-      shell: "ssh-keyscan -H {{ site  }} >> ~/.ssh/known_hosts"
+#   - name: Write the new instance host key to known hosts
+#     connection: local
+#     shell: "ssh-keyscan -H {{ site  }} >> ~/.ssh/known_hosts"
 
     - name: Installing python & apt update
-      raw: apt-get install -y python2.7-minimal
+      raw: test -x /usr/bin/python || apt-get update && apt-get -y install python2.7-minimal
 
     - name: default python2.7
-      raw: update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+      raw: test -x /usr/bin/python || update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
 
     - name: Adding user
       user:

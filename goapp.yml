@@ -6,18 +6,18 @@
   become_user: root
   become_method: sudo
   vars:
-   #site: tty8747.devops.srwx.net
-    site: goapp.aaaj.ru
+    site: tty8747.devops.srwx.net
     letsencrypts_email: tty8747@gmail.com
 
   tasks:
 
-#   - name: Upgrade 
-#     apt: upgrade=dist update_cache=yes
+    - name: apt update
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
 
     - name: Installing nginx
       apt:
-          allow_unauthenticated=yes
           name=nginx
           state=present
       notify: start nginx
@@ -25,63 +25,83 @@
     - name: сreate directory /opt/acme
       file:
         path=/opt/acme
+        mode=0755
+        owner=root
+        group=root
         state=directory
+      tags:
+        - create
 
     - name: сreate directory /srv/www
       file:
         path=/srv/www
+        mode=0755
+        owner=root
+        group=root
         state=directory
 
     - name: сreate directory /srv/phpapp
       file:
         path=/srv/phpapp
+        mode=0755
+        owner=root
+        group=root
         state=directory
 
     - name: сreate directory /srv/goapi
       file:
         path=/srv/goapi
+        mode=0755
+        owner=root
+        group=root
         state=directory
 
     - name: Push config nginx
       template: 
         src=templates/nginxTemplate.j2
         dest=/etc/nginx/sites-available/{{ site }} 
-        owner=goto
+        owner=root
         group=www-data
         mode=0644
-      notify: reload nginx
+      notify: restart nginx
 
     - name: rm default
       file:
         path: /etc/nginx/sites-enabled/default
         state: absent
-      notify: reload nginx
+      notify: restart nginx
 
     - name: create symlink
       file: src=/etc/nginx/sites-available/{{ site }} dest=/etc/nginx/sites-enabled/{{ site }} state=link
-      notify: reload nginx
+      notify: restart nginx
+
+    - name: force handlers
+      meta: flush_handlers
 
     - name: Install letsencrypt
       apt: 
-        allow_unauthenticated=yes
         name=letsencrypt
         state=latest
 
     - name: Create letsencrypt certificate
       shell: letsencrypt certonly -n --webroot -w /opt/acme/ -d {{ site }} -m {{ letsencrypts_email }} --agree-tos
+      args:
+        creates: /etc/letsencrypt/live/{{ site }}/fullchain.pem
 
     - name: Gen dhparam
       shell: openssl dhparam -out /etc/ssl/certs/dhparam.pem 2048
-      notify: reload nginx
+      args:
+        creates: /etc/ssl/certs/dhparam.pem
+      notify: restart nginx
 
     - name: Push config nginx
       template: 
         src=templates/nginxSslTemplate.j2
         dest=/etc/nginx/sites-available/{{ site }} 
-        owner=goto
+        owner=root
         group=www-data
         mode=0644
-      notify: reload nginx
+      notify: restart nginx
 
     - name: letsencrypt autoupdate
       cron:
@@ -90,6 +110,23 @@
         hour: "4"
         weekday: "1"
         job: "letsencrypt renew && service nginx reload" 
+
+    - name: Create service api
+      template:
+        src=templates/goapi.service.j2
+        dest=/etc/systemd/system/goapi.service
+      notify: reload-daemon
+
+    - name: Installing git
+      apt:
+          name=git
+          state=present
+
+    - name: Clone front-html
+      git:
+        repo: https://github.com/tty8747/goapp.git
+        dest: /srv/goapi
+        clone: yes
 
   handlers:
 
@@ -101,3 +138,6 @@
 
     - name: start nginx
       service: name=nginx state=started
+    
+    - name: reload-daemon
+      command: systemctl daemon-reload
