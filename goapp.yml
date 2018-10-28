@@ -122,10 +122,23 @@
           name=git
           state=present
 
-    - name: Clone front-html
+    - name: Clone goapi
       git:
         repo: https://github.com/tty8747/goapp.git
         dest: /srv/goapi
+        clone: yes
+      notify: start goapi 
+
+    - name: Clone calc-front
+      git:
+        repo: https://github.com/tty8747/calc_front.git
+        dest: /srv/www
+        clone: yes
+
+    - name: Clone php-diff
+      git:
+        repo: https://github.com/tty8747/calc_diff.git
+        dest: /srv/phpapp
         clone: yes
 
   handlers:
@@ -141,3 +154,6 @@
     
     - name: reload-daemon
       command: systemctl daemon-reload
+
+    - name: start goapi 
+      service: name=goapi state=started
